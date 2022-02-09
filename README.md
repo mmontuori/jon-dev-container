@@ -21,6 +21,8 @@ This contains all of the setup to allow for various configurations for doing dev
 |PYTHON_VERSION| 3.10.2 | This is the version of python to install. Example values - 3.8.2, 3.10.0 |
 |INSTALL_SBT| false | Setting this to true will include the sbt executables into the container |
 |SBT_VERSION| latest | This is the version of sbt to install. |
+|INSTALL_SPDX_GENERATOR| false | Setting this to true will include the spdx-sbom-generator utility |
+|SPDX_GENERATOR_VERSION| 0.0.10 | This is teh verion of the spdx-sbom-generate to install. Use the version numbers without the `v` from [spdx-sbom-generator Releases](https://github.com/opensbom-generator/spdx-sbom-generator/releases)
 
 ## Example Builds
 
