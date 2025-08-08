@@ -1,6 +1,6 @@
-ARG JAVA_VERSION=18
+ARG JAVA_VERSION=21
 ARG VARIANT=$JAVA_VERSION
-FROM openjdk:${JAVA_VERSION}-jdk-buster
+FROM redhat/ubi10:10.0
 
 ENV VARIANT=$VARIANT
 # [Option] Install zsh
@@ -27,6 +27,11 @@ ARG INSTALL_PYTHON="false"
 ARG INSTALL_SCALA="false"
 ARG INSTALL_SBT="false"
 ARG INSTALL_SPDX_GENERATOR="false"
+ARG INSTALL_GO="false"
+ARG INSTALL_OPENSHIFT_UTILS="false"
+ARG INSTALL_DOCKER="false"
+ARG INSTALL_CLOCKIFY_CLI="false"
+ARG INSTALL_DOTFILES="true"
 
 ARG DOTNET_VERSION="6.0"
 ARG MAVEN_VERSION="latest"
@@ -36,6 +41,7 @@ ARG PYTHON_VERSION="3.10.2"
 ARG SCALA_VERSION=""
 ARG SBT_VERSION=""
 ARG SPDX_GENERATOR_VERSION="0.0.10"
+ARG DOTFILES_VERSION="1.0.0"
 
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
@@ -48,11 +54,12 @@ ENV PIPX_HOME=/usr/local/py-utils \
     PIPX_BIN_DIR=/usr/local/py-utils/bin
 ENV PATH=${PATH}:${PIPX_BIN_DIR}
 
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    # Remove imagemagick due to https://security-tracker.debian.org/tracker/CVE-2019-10131
-    && apt-get purge -y imagemagick imagemagick-6-common \
+RUN dnf update
+    && dnf install -y java-$VARIANT-openjdk
     # Install common packages, non-root user
-    && bash /tmp/library-scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
+    && bash /tmp/library-scripts/common-rhel.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
+    # Install dotfiles
+    && if [ "${INSTALL_DOTFILES}" = "true" ]; then bash /tmp/library-scripts/dotfiles.sh "${USERNAME}" "${DOTFILES_VERSION}"
     # Install dotnet
     && if [ "${INSTALL_DOTNET}" = "true" ]; then bash /tmp/library-scripts/dotnet.sh --user "${USERNAME}" --version "${DOTNET_VERSION}"; fi \
     # Install gradle
