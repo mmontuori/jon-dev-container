@@ -89,6 +89,11 @@ USER ${USERNAME}
 RUN export HOME=/home/${USERNAME} \
     && mkdir -p ${HOME}/.ssh ${HOME}/workspaces ${HOME}/apps
 
-EXPOSE 80
+VOLUME /var/lib/containers
+VOLUME /home/podman/.local/share/containers
+
+EXPOSE 8080
 CMD sudo nginx -g 'daemon off;'
 ENV HOME=/home/${USERNAME}
+
+WORKDIR /home/${USERNAME}
