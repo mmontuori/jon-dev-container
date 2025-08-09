@@ -85,6 +85,7 @@ RUN dnf update -y \
     && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
 
 USER ${USERNAME}
+COPY --chown=${USERNAME}:${USERNAME} files/k8s-utils /home/${USERNAME}/k8s-utils
 
 RUN export HOME=/home/${USERNAME} \
     && mkdir -p ${HOME}/.ssh ${HOME}/workspaces ${HOME}/apps

@@ -1,0 +1,16 @@
+#
+# This is a sample file meant to be copied to .context
+#
+# Include contexts that other scripts may reference when
+# executing commands.
+#
+# The format is one context per line
+#
+# To rename any existing context, do the following:
+# oc config rename-context [old] [new]
+#
+# Replace the example contexts below with real ones
+#
+prod-cluster1
+prod-cluster2
+prod-cluster3
