@@ -44,10 +44,29 @@ function updaterc() {
     fi
 }
 
+function updatebashrc() {
+    if [ "${UPDATE_RC}" = "true" ]; then
+        echo "Updating /etc/bash.bashrc..."
+        echo -e "$1" >> /etc/bash.bashrc
+    fi
+}
+
+function updatezshrc() {
+    if [ "${UPDATE_RC}" = "true" ]; then
+        echo "Updating /etc/zshrc..."
+        echo -e "$1" >> /etc/zshrc
+    fi
+}
+
 # Install kubectl
 echo "Installing kubectl..."
 curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 chmod +x /usr/local/bin/kubectl
+if [ -f "/etc/zshrc" ]; then
+    updatezshrc "source <(kubectl completion zsh)"
+else
+    updatebashrc "source <(kubectl completion bash)"
+fi
 
 # Install helm
 echo "Installing helm..."
@@ -55,5 +74,20 @@ curl -sSL -o /tmp/helm.tar.gz "https://get.helm.sh/helm-v${HELM_VERSION}-linux-a
 tar -xzf /tmp/helm.tar.gz -C /usr/local/bin --strip-components=1
 rm -f /tmp/helm.tar.gz
 chmod +x /usr/local/bin/helm
+
+# Install kubecolor
+echo "Installing kubecolor..."
+dnf install -y 'dnf-command(config-manager)'
+dnf config-manager --add-repo https://kubecolor.github.io/packages/rpm/kubecolor.repo
+dnf install -y kubecolor
+updaterc "alias k='kubecolor'"
+updaterc "alias kubectl='kubecolor'"
+updaterc "alias oc='env KUBECTL_COMMAND=oc kubecolor'"
+if [ -f "/etc/zshrc" ]; then
+    updatezshrc "compdef kubecolor=kubectl"
+else
+    updatebashrc "complete -o default -F __start_kubectl kubecolor"
+    updatebashrc "complete -o default -F __start_kubectl k"
+fi
 
 echo "Done!"
