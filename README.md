@@ -16,15 +16,14 @@ This contains all of the setup to allow for various configurations for doing dev
 |INSTALL_NODE| false | Setting this to true will include the node executables into the container |
 |NODE_VERSION| lts | This is the version of node to install. Use version numbers from [Node Version Manager](https://github.com/nvm-sh/nvm#usage) |
 |INSTALL_PYTHON| false | Setting this to true will include the python executables into the container |
-|PYTHON_VERSION| 3.10.2 | This is the version of python to install. Example values - 3.8.2, 3.10.0 |
+|PYTHON_VERSION| 3 | This is the version of python to install. |
 |INSTALL_SBT| false | Setting this to true will include the sbt executables into the container |
 |SBT_VERSION| latest | This is the version of sbt to install. |
 |INSTALL_SPDX_GENERATOR| false | Setting this to true will include the spdx-sbom-generator utility |
 |SPDX_GENERATOR_VERSION| 0.0.10 | This is teh verion of the spdx-sbom-generate to install. Use the version numbers without the `v` from [spdx-sbom-generator Releases](https://github.com/opensbom-generator/spdx-sbom-generator/releases)
 |INSTALL_GO| false | Setting this to true will install the go language into the container |
-|INSTALL_CLOCKIFY_CLI | false | Setting this to true will install the go language and the [clockify cli](https://clockify-cli.netlify.app/) into the container |
-|INSTALL_OPENSHIFT_UTILS| false | Setting this to true will include oc and helm executables into the container |
-|INSTALL_PODMAN | false | Setting this to true will install Docker in the container |
+|INSTALL_K8S_UTILS| false | Setting this to true will include kubectl and helm executables into the container |
+|INSTALL_PODMAN | false | Setting this to true will install podman in the container |
 |INSTALL_DOTFILES | true | Setting this to false will keep the default dotfiles for the user |
 |DOTFILES_VERSION| 1.0.0 | This is the version of sturdy5's dotfiles you want to install. Use version numbers from [sturdy5/dotfiles](https://sturdy5.github.io/dotfiles/) |
 

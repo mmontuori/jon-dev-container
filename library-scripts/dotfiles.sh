@@ -37,7 +37,9 @@ fi
 mkdir -p /tmp/dotfiles
 curl -sSL -o /tmp/dotfiles.tar.gz "https://sturdy5.github.io/dotfiles/dotfiles-${DOTFILES_VERSION}.tar.gz"
 tar -xzf /tmp/dotfiles.tar.gz -C "/tmp/dotfiles" --strip-components=1
-rsync --exclude ".git/" --exclude "bootstrap.sh" --exclude "README.md" --exclude ".idea" --exclude ".gitignore" -avh --no-perms /tmp/dotfiles /home/${USERNAME}
+rsync --exclude ".git/" --exclude "bootstrap.sh" --exclude "README.md" --exclude ".idea" --exclude ".gitignore" -avh --no-perms /tmp/dotfiles/.* /home/${USERNAME}
+mkdir -p /home/${USERNAME}/.local/bin
+cp /tmp/dotfiles/tool-version /home/${USERNAME}/.local/bin/
 
 echo "" >> /home/${USERNAME}/.zshrc
 echo "# Setup custom dotfiles" >> /home/${USERNAME}/.zshrc

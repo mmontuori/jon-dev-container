@@ -81,7 +81,8 @@ RUN dnf update -y \
     && rm -rf /tmp/library-scripts \
     && dnf clean all \
     && rm -rf /var/cache/dnf \
-    && rm -rf /var/lib/rpm/__db*
+    && rm -rf /var/lib/rpm/__db* \
+    && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
 
 USER ${USERNAME}
 
