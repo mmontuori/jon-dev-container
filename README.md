@@ -6,9 +6,7 @@ This contains all of the setup to allow for various configurations for doing dev
 
 |Argument|Default Value|Description|
 |--------|-------------|-----------|
-|JAVA_VERSION | 18          | This is the version of Java to use. Java is always required to run the scanner. Use any of the valid tags for the [OpenJDK Docker Image](https://hub.docker.com/_/openjdk?tab=tags)|
-|INSTALL_DOTNET| false | Setting this to true will include the dotnet executables into the container |
-|DOTNET_VERSION| 6.0 | This is the version of dotnet to install. Example values - 2.1, 5.0, 6.0|
+|JAVA_VERSION | 21          | This is the version of Java to use. Java will be installed from the RHEL yum repos.|
 |INSTALL_SCALA| false | Setting this to true will include the scala executable into the container |
 |SCALA_VERSION| latest | This is the version of scala to install. |
 |INSTALL_MAVEN| false | Setting this to true will include the maven executables into the container |

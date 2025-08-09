@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
+#-------------------------------------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
+#-------------------------------------------------------------------------------------------------------------
 #
-# Syntax: ./scala-debian.sh [Scala version] [SDKMAN_DIR] [non-root user] [Update rc files flag]
+# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/gradle.md
+# Maintainer: The VS Code and Codespaces Teams
+#
+# Syntax: ./gradle.sh [Gradle version] [SDKMAN_DIR] [non-root user] [Update rc files flag]
 
-SCALA_VERSION=${1:-"latest"}
+GRADLE_VERSION=${1:-"latest"}
 export SDKMAN_DIR=${2:-"/usr/local/sdkman"}
 USERNAME=${3:-"automatic"}
 UPDATE_RC=${4:-"true"}
 
 set -e
 
- # Blank will install latest scala version
-if [ "${SCALA_VERSION}" = "lts" ] || [ "${SCALA_VERSION}" = "latest" ] || [ "${SCALA_VERSION}" = "current" ]; then
-    SCALA_VERSION=""
+ # Blank will install latest gradle version
+if [ "${GRADLE_VERSION}" = "lts" ] || [ "${GRADLE_VERSION}" = "latest" ] || [ "${GRADLE_VERSION}" = "current" ]; then
+    GRADLE_VERSION=""
 fi
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -51,14 +58,9 @@ function updaterc() {
     fi
 }
 
-export DEBIAN_FRONTEND=noninteractive
-
 # Install curl, zip, unzip if missing
-if ! dpkg -s curl ca-certificates zip unzip sed > /dev/null 2>&1; then
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        apt-get update
-    fi
-    apt-get -y install --no-install-recommends curl ca-certificates zip unzip sed
+if ! rpm -q curl ca-certificates zip unzip sed > /dev/null 2>&1; then
+    dnf install -y curl ca-certificates zip unzip sed
 fi
 
 # Install sdkman if not installed
@@ -77,7 +79,8 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
 fi
 
-# Install scala
-su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install scala ${SCALA_VERSION} && sdk flush archives && sdk flush temp"
+# Install gradle
+su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install gradle ${GRADLE_VERSION} && sdk flush archives && sdk flush temp"
+updaterc "export GRADLE_USER_HOME=\${HOME}/.gradle"
 
 echo "Done!"

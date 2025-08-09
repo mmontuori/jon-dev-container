@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 #
-# Syntax: ./spdx-generator-debian.sh [spdx generator version] [non-root user] [Update rc files flag]
+# Syntax: ./scala.sh [Scala version] [SDKMAN_DIR] [non-root user] [Update rc files flag]
 
-SPDX_GENERATOR_VERSION=${1:-"latest"}
-USERNAME=${2:-"automatic"}
-UPDATE_RC=${3:-"true"}
+SCALA_VERSION=${1:-"latest"}
+export SDKMAN_DIR=${2:-"/usr/local/sdkman"}
+USERNAME=${3:-"automatic"}
+UPDATE_RC=${4:-"true"}
 
 set -e
+
+ # Blank will install latest scala version
+if [ "${SCALA_VERSION}" = "lts" ] || [ "${SCALA_VERSION}" = "latest" ] || [ "${SCALA_VERSION}" = "current" ]; then
+    SCALA_VERSION=""
+fi
 
 if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
@@ -48,15 +54,27 @@ function updaterc() {
 export DEBIAN_FRONTEND=noninteractive
 
 # Install curl, zip, unzip if missing
-if ! dpkg -s curl ca-certificates zip unzip sed > /dev/null 2>&1; then
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        apt-get update
-    fi
-    apt-get -y install --no-install-recommends curl ca-certificates zip unzip sed
+if ! rpm -q curl ca-certificates zip unzip sed > /dev/null 2>&1; then
+    dnf install -y curl ca-certificates zip unzip sed
 fi
 
-# Install spdx generator
-curl -sSL https://github.com/spdx/spdx-sbom-generator/releases/download/v${SPDX_GENERATOR_VERSION}/spdx-sbom-generator-v${SPDX_GENERATOR_VERSION}-linux-amd64.tar.gz -o /tmp/spdx-generator.tar.gz
-tar -xzf /tmp/spdx-generator.tar.gz -C /usr/local/bin
+# Install sdkman if not installed
+if [ ! -d "${SDKMAN_DIR}" ]; then
+    # Create sdkman group, dir, and set sticky bit
+    if ! cat /etc/group | grep -e "^sdkman:" > /dev/null 2>&1; then
+        groupadd -r sdkman
+    fi
+    usermod -a -G sdkman ${USERNAME}
+    umask 0002
+    # Install SDKMAN
+    curl -sSL "https://get.sdkman.io?rcupdate=false" | bash
+    chown -R :sdkman ${SDKMAN_DIR}
+    find ${SDKMAN_DIR} -type d | xargs -d '\n' chmod g+s
+    # Add sourcing of sdkman into bashrc/zshrc files (unless disabled)
+    updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
+fi
+
+# Install scala
+su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install scala ${SCALA_VERSION} && sdk flush archives && sdk flush temp"
 
 echo "Done!"

@@ -7,7 +7,7 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/common.md
 # Maintainer: The VS Code and Codespaces Teams
 #
-# Syntax: ./common-debian.sh [install zsh flag] [username] [user UID] [user GID] [upgrade packages flag] [install Oh My Zsh! flag] [Add non-free packages]
+# Syntax: ./common-rhel.sh [install zsh flag] [username] [user UID] [user GID] [upgrade packages flag] [install Oh My Zsh! flag] [Add non-free packages]
 
 set -e
 
@@ -24,6 +24,8 @@ if [ "$(id -u)" -ne 0 ]; then
     echo -e 'Script must be run as root. Use sudo, su, or add "USER root" to your Dockerfile before running this script.'
     exit 1
 fi
+
+echo "insecure" >> ~/.curlrc
 
 # Ensure that login shells get the correct path if the user updated the PATH using ENV.
 rm -f /etc/profile.d/00-restore-env.sh
@@ -57,117 +59,46 @@ if [ -f "${MARKER_FILE}" ]; then
     source "${MARKER_FILE}"
 fi
 
-# Ensure apt is in non-interactive to avoid prompts
-export DEBIAN_FRONTEND=noninteractive
-
-# Function to call apt-get if needed
-apt-get-update-if-needed()
+# Function to call dnf if needed
+update-if-needed()
 {
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        echo "Running apt-get update..."
-        apt-get update
-    else
-        echo "Skipping apt-get update."
-    fi
+    dnf update
 }
 
-# Run install apt-utils to avoid debconf warning then verify presence of other common developer tools and dependencies
+# Run install 
 if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
 
-    PACKAGE_LIST="apt-utils \
-        git \
-        openssh-client \
+    # First, let's install dnf to make this a little easier
+
+    PACKAGE_LIST="git \
+        openssh-clients \
         gnupg2 \
-        iproute2 \
+        iproute \
         procps \
         lsof \
-        htop \
         net-tools \
         psmisc \
-        curl \
         wget \
         rsync \
-        ca-certificates \
         unzip \
         zip \
-        nano \
-        vim-tiny \
         less \
         jq \
-        lsb-release \
-        apt-transport-https \
-        dialog \
-        libc6 \
-        libgcc1 \
-        libkrb5-3 \
-        libgssapi-krb5-2 \
-        libicu[0-9][0-9] \
-        liblttng-ust0 \
-        libstdc++6 \
-        zlib1g \
-        locales \
-        sudo \
-        ncdu \
-        man-db \
-        strace \
-        manpages \
-        manpages-dev \
-        init-system-helpers"
+        vim \
+        dnsutils \
+        sudo"
         
-    # Needed for adding manpages-posix and manpages-posix-dev which are non-free packages in Debian
-    if [ "${ADD_NON_FREE_PACKAGES}" = "true" ]; then
-        CODENAME="$(cat /etc/os-release | grep -oE '^VERSION_CODENAME=.+$' | cut -d'=' -f2)"
-        sed -i -E "s/deb http:\/\/(deb|httpredir)\.debian\.org\/debian ${CODENAME} main/deb http:\/\/\1\.debian\.org\/debian ${CODENAME} main contrib non-free/" /etc/apt/sources.list
-        sed -i -E "s/deb-src http:\/\/(deb|httredir)\.debian\.org\/debian ${CODENAME} main/deb http:\/\/\1\.debian\.org\/debian ${CODENAME} main contrib non-free/" /etc/apt/sources.list
-        sed -i -E "s/deb http:\/\/(deb|httpredir)\.debian\.org\/debian ${CODENAME}-updates main/deb http:\/\/\1\.debian\.org\/debian ${CODENAME}-updates main contrib non-free/" /etc/apt/sources.list
-        sed -i -E "s/deb-src http:\/\/(deb|httpredir)\.debian\.org\/debian ${CODENAME}-updates main/deb http:\/\/\1\.debian\.org\/debian ${CODENAME}-updates main contrib non-free/" /etc/apt/sources.list
-        sed -i "s/deb http:\/\/security\.debian\.org\/debian-security ${CODENAME}\/updates main/deb http:\/\/security\.debian\.org\/debian-security ${CODENAME}\/updates main contrib non-free/" /etc/apt/sources.list
-        sed -i "s/deb-src http:\/\/security\.debian\.org\/debian-security ${CODENAME}\/updates main/deb http:\/\/security\.debian\.org\/debian-security ${CODENAME}\/updates main contrib non-free/" /etc/apt/sources.list
-        sed -i "s/deb http:\/\/deb\.debian\.org\/debian ${CODENAME}-backports main/deb http:\/\/deb\.debian\.org\/debian ${CODENAME}-backports main contrib non-free/" /etc/apt/sources.list 
-        sed -i "s/deb-src http:\/\/deb\.debian\.org\/debian ${CODENAME}-backports main/deb http:\/\/deb\.debian\.org\/debian ${CODENAME}-backports main contrib non-free/" /etc/apt/sources.list
-        echo "Running apt-get update..."
-        apt-get update
-        PACKAGE_LIST="${PACKAGE_LIST} manpages-posix manpages-posix-dev"
-    else
-        apt-get-update-if-needed
-    fi
-
-    # Install libssl1.1 if available
-    if [[ ! -z $(apt-cache --names-only search ^libssl1.1$) ]]; then
-        PACKAGE_LIST="${PACKAGE_LIST}       libssl1.1"
-    fi
-    
-    # Install appropriate version of libssl1.0.x if available
-    LIBSSL=$(dpkg-query -f '${db:Status-Abbrev}\t${binary:Package}\n' -W 'libssl1\.0\.?' 2>&1 || echo '')
-    if [ "$(echo "$LIBSSL" | grep -o 'libssl1\.0\.[0-9]:' | uniq | sort | wc -l)" -eq 0 ]; then
-        if [[ ! -z $(apt-cache --names-only search ^libssl1.0.2$) ]]; then
-            # Debian 9
-            PACKAGE_LIST="${PACKAGE_LIST}       libssl1.0.2"
-        elif [[ ! -z $(apt-cache --names-only search ^libssl1.0.0$) ]]; then
-            # Ubuntu 18.04, 16.04, earlier
-            PACKAGE_LIST="${PACKAGE_LIST}       libssl1.0.0"
-        fi
-    fi
-
     echo "Packages to verify are installed: ${PACKAGE_LIST}"
-    apt-get -y install --no-install-recommends ${PACKAGE_LIST} 2> >( grep -v 'debconf: delaying package configuration, since apt-utils is not installed' >&2 )
-        
+    dnf -y install ${PACKAGE_LIST}
+
     PACKAGES_ALREADY_INSTALLED="true"
 fi
 
 # Get to latest versions of all packages
 if [ "${UPGRADE_PACKAGES}" = "true" ]; then
-    apt-get-update-if-needed
-    apt-get -y upgrade --no-install-recommends
-    apt-get autoremove -y
-fi
-
-# Ensure at least the en_US.UTF-8 UTF-8 locale is available.
-# Common need for both applications and things like the agnoster ZSH theme.
-if [ "${LOCALE_ALREADY_SET}" != "true" ] && ! grep -o -E '^\s*en_US.UTF-8\s+UTF-8' /etc/locale.gen > /dev/null; then
-    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen 
-    locale-gen
-    LOCALE_ALREADY_SET="true"
+    update-if-needed
+    dnf -y upgrade
+    dnf clean all
 fi
 
 # Create or update a non-root user to match UID/GID.
@@ -196,6 +127,7 @@ fi
 
 # Add add sudo support for non-root user
 if [ "${USERNAME}" != "root" ] && [ "${EXISTING_NON_ROOT_USER}" != "${USERNAME}" ]; then
+    mkdir -p /etc/sudoers.d/
     echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
     chmod 0440 /etc/sudoers.d/$USERNAME
     EXISTING_NON_ROOT_USER="${USERNAME}"
@@ -206,16 +138,6 @@ if [ "${USERNAME}" = "root" ]; then
     USER_RC_PATH="/root"
 else
     USER_RC_PATH="/home/${USERNAME}"
-fi
-
-# Restore user .bashrc defaults from skeleton file if it doesn't exist or is empty
-if [ ! -f "${USER_RC_PATH}/.bashrc" ] || [ ! -s "${USER_RC_PATH}/.bashrc" ] ; then
-    cp  /etc/skel/.bashrc "${USER_RC_PATH}/.bashrc"
-fi
-
-# Restore user .profile defaults from skeleton file if it doesn't exist or is empty
-if  [ ! -f "${USER_RC_PATH}/.profile" ] || [ ! -s "${USER_RC_PATH}/.profile" ] ; then
-    cp  /etc/skel/.profile "${USER_RC_PATH}/.profile"
 fi
 
 # .bashrc/.zshrc snippet
@@ -384,11 +306,11 @@ fi
 # Optionally install and configure zsh and Oh My Zsh!
 if [ "${INSTALL_ZSH}" = "true" ]; then
     if ! type zsh > /dev/null 2>&1; then
-        apt-get-update-if-needed
-        apt-get install -y zsh
+        update-if-needed
+        dnf install -y zsh
     fi
     if [ "${ZSH_ALREADY_INSTALLED}" != "true" ]; then
-        echo "${RC_SNIPPET}" >> /etc/zsh/zshrc
+        echo "${RC_SNIPPET}" >> /etc/zshrc
         ZSH_ALREADY_INSTALLED="true"
     fi
 
@@ -460,6 +382,21 @@ if [ -f "${SCRIPT_DIR}/meta.env" ]; then
      echo "${META_INFO_SCRIPT}" > /usr/local/bin/devcontainer-info
     chmod +x /usr/local/bin/devcontainer-info
 fi
+
+# Allow unsafe SSL renegotiation
+cp /etc/ssl/openssl.cnf /etc/ssl/openssl.backup
+sed -i 's/openssl_conf = default_conf/openssl_conf = openssl_init/g' /etc/ssl/openssl.cnf
+echo "" >> /etc/ssl/openssl.cnf
+echo "[openssl_init]" >> /etc/ssl/openssl.cnf
+echo "ssl_conf = ssl_isect" >> /etc/ssl/openssl.cnf
+echo "" >> /etc/ssl/openssl.cnf
+echo "[ssl_isect]" >> /etc/ssl/openssl.cnf
+echo "system_default = system_default_isect" >> /etc/ssl/openssl.cnf
+echo "" >> /etc/ssl/openssl.cnf
+echo "[system_default_isect]" >> /etc/ssl/openssl.cnf
+echo "MinProtocol = TLSv1.2" >> /etc/ssl/openssl.cnf
+echo "CipherString = DEFAULT@SECLEVEL=1" >> /etc/ssl/openssl.cnf
+echo "Options = UnsafeLegacyRenegotiation" >> /etc/ssl/openssl.cnf
 
 # Write marker file
 mkdir -p "$(dirname "${MARKER_FILE}")"

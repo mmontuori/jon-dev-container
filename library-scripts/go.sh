@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Syntax: ./podman-rhel.sh [non-root user] [Update rc files flag]
+# Syntax: ./go.sh [version] [non-root user] [Update rc files flag]
 
-USERNAME=${1:-"automatic"}
-UPDATE_RC=${2:-"true"}
+GO_VERSION=${1:-"1.24.6"}
+USERNAME=${2:-"automatic"}
+UPDATE_RC=${3:-"true"}
 
 set -e
 
@@ -43,8 +44,17 @@ function updaterc() {
     fi
 }
 
-# Install podman
-microdnf install -y podman
-export PODMAN_IGNORE_CGROUPSV1_WARNING="true"
+# Install go
+echo "Installing go..."
+mkdir -p /opt/go/modules /tmp/go
+cd /tmp/go
+curl -sSL -o /tmp/go.tar "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
+tar -xzf /tmp/go.tar -C "/opt/go" --strip-components=1
+cd /tmp
+rm -rf /tmp/go
+updaterc "export PATH=\${PATH}:/opt/go/bin"
+updaterc "export GOBIN=/opt/go/modules"
+export GOBIN=/opt/go/modules
+echo "export PATH=\${PATH}:\${GOBIN}" >> /home/${USERNAME}/.zshrc
 
 echo "Done!"

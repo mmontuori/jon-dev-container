@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Syntax: ./go-rhel.sh [non-root user] [Update rc files flag]
+# Syntax: ./k8s-utils.sh [non-root user] [Update rc files flag]
 
-USERNAME=${1:-"automatic"}
-UPDATE_RC=${2:-"true"}
+HELM_VERSION=${1:-"3.12.0"}
+USERNAME=${2:-"automatic"}
+UPDATE_RC=${3:-"true"}
 
 set -e
 
@@ -43,19 +44,16 @@ function updaterc() {
     fi
 }
 
-export DEBIAN_FRONTEND=noninteractive
+# Install kubectl
+echo "Installing kubectl..."
+curl -sSL -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x /usr/local/bin/kubectl
 
-# Install go
-echo "Installing go..."
-mkdir -p /opt/go/modules /tmp/go
-cd /tmp/go
-curl -sSL -o /tmp/go.tar "https://update-to-point-to-a-real-location/go/go1.20.5.linux-amd64.tar.gz"
-tar -xzf /tmp/go.tar -C "/opt/go" --strip-components=1
-cd /tmp
-rm -rf /tmp/go
-updaterc "export PATH=\${PATH}:/opt/go/bin"
-updaterc "export GOBIN=/opt/go/modules"
-export GOBIN=/opt/go/modules
-echo "export PATH=\${PATH}:\${GOBIN}" >> /home/${USERNAME}/.zshrc
+# Install helm
+echo "Installing helm..."
+curl -sSL -o /tmp/helm.tar.gz "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz"
+tar -xzf /tmp/helm.tar.gz -C /usr/local/bin --strip-components=1
+rm -f /tmp/helm.tar.gz
+chmod +x /usr/local/bin/helm
 
 echo "Done!"

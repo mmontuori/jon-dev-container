@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PYTHON_VERSION=${1:-"3.12"}
+PYTHON_VERSION=${1:-"3"}
 USERNAME=${2:-"automatic"}
 UPDATE_RC=${3:-"true"}
 INSTALL_PYTHON_TOOLS=${4:-"true"}
@@ -52,7 +52,7 @@ if [ "${PYTHON_VERSION}" != "none" ]; then
         echo "Path ${PYTHON_INSTALL_PATH} already exists. Assuming Python already installed."
     else
         echo "Installing Python ${PYTHON_VERSION} ..."
-        microdnf install -y python${PYTHON_VERSION}
+        dnf install -y python${PYTHON_VERSION}
         
         ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/python
     fi

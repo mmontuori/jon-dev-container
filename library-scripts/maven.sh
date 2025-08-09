@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
+#-------------------------------------------------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
+#-------------------------------------------------------------------------------------------------------------
 #
-# Syntax: ./sbt-debian.sh [SBT version] [SDKMAN_DIR] [non-root user] [Update rc files flag]
+# Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/maven.md
+# Maintainer: The VS Code and Codespaces Teams
+#
+# Syntax: ./maven.sh [maven version] [SDKMAN_DIR] [non-root user] [Update rc files flag]
 
-SBT_VERSION=${1:-"latest"}
+MAVEN_VERSION=${1:-"latest"}
 export SDKMAN_DIR=${2:-"/usr/local/sdkman"}
 USERNAME=${3:-"automatic"}
 UPDATE_RC=${4:-"true"}
 
 set -e
 
- # Blank will install latest sbt version
-if [ "${SBT_VERSION}" = "lts" ] || [ "${SBT_VERSION}" = "latest" ] || [ "${SBT_VERSION}" = "current" ]; then
-    SBT_VERSION=""
+ # Blank will install latest maven version
+if [ "${MAVEN_VERSION}" = "lts" ] || [ "${MAVEN_VERSION}" = "current" ] || [ "${MAVEN_VERSION}" = "latest" ]; then
+    MAVEN_VERSION=""
 fi
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -54,11 +61,8 @@ function updaterc() {
 export DEBIAN_FRONTEND=noninteractive
 
 # Install curl, zip, unzip if missing
-if ! dpkg -s curl ca-certificates zip unzip sed > /dev/null 2>&1; then
-    if [ ! -d "/var/lib/apt/lists" ] || [ "$(ls /var/lib/apt/lists/ | wc -l)" = "0" ]; then
-        apt-get update
-    fi
-    apt-get -y install --no-install-recommends curl ca-certificates zip unzip sed
+if ! rpm -q curl ca-certificates zip unzip sed > /dev/null 2>&1; then
+    dnf install -y curl ca-certificates zip unzip sed
 fi
 
 # Install sdkman if not installed
@@ -77,14 +81,8 @@ if [ ! -d "${SDKMAN_DIR}" ]; then
     updaterc "export SDKMAN_DIR=${SDKMAN_DIR}\n. \${SDKMAN_DIR}/bin/sdkman-init.sh"
 fi
 
-# Install sbt
-su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install sbt ${SBT_VERSION} && sdk flush archives && sdk flush temp"
-
-# Setup the dependency tree plugin
-mkdir -p ~/.sbt/1.0/plugins
-echo "addDependencyTreePlugin" >> ~/.sbt/1.0/plugins/plugins.sbt
-
-mkdir -p /home/${USERNAME}/.sbt/1.0/plugins
-echo "addDependencyTreePlugin" >> /home/${USERNAME}/.sbt/1.0/plugins/plugins.sbt
+# Install Maven
+su ${USERNAME} -c "umask 0002 && . ${SDKMAN_DIR}/bin/sdkman-init.sh && sdk install maven ${MAVEN_VERSION} && sdk flush archives && sdk flush temp"
+updaterc "export M2=\$HOME/.m2"
 
 echo "Done!"

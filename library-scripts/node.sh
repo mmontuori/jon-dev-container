@@ -7,7 +7,7 @@
 # Docs: https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/node.md
 # Maintainer: The VS Code and Codespaces Teams
 #
-# Syntax: ./node-debian.sh [directory to install nvm] [node version to install (use "none" to skip)] [non-root user] [Update rc files flag]
+# Syntax: ./node.sh [directory to install nvm] [node version to install (use "none" to skip)] [non-root user] [Update rc files flag]
 
 export NVM_DIR=${1:-"/usr/local/share/nvm"}
 export NODE_VERSION=${2:-"lts/*"}
