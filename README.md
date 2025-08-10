@@ -32,19 +32,19 @@ This contains all of the setup to allow for various configurations for doing dev
 Build a container for a dotnet application using 2.1
 
 ```bash
-docker build --build-arg INSTALL_DOTNET=true --build-arg DOTNET_VERSION=2.1 -t dev-container:local .
+podman build --build-arg INSTALL_DOTNET=true --build-arg DOTNET_VERSION=2.1 -t dev-container:local .
 ```
 
 Build a container for a java 8 application with maven
 
 ```bash
-docker build --build-arg JAVA_VERSION=8 --build-arg INSTALL_MAVEN=true -t dev-container:local .
+podman build --build-arg JAVA_VERSION=8 --build-arg INSTALL_MAVEN=true -t dev-container:local .
 ```
 
 Build a container for a java app with maven and node
 
 ```bash
-docker build --build-arg INSTALL_MAVEN=true --build-arg INSTALL_NODE=true -t dev-container:local .
+podman build --build-arg INSTALL_MAVEN=true --build-arg INSTALL_NODE=true -t dev-container:local .
 ```
 
 ## Running a Container
@@ -52,17 +52,23 @@ docker build --build-arg INSTALL_MAVEN=true --build-arg INSTALL_NODE=true -t dev
 Once the container is built, you can get into it using the name you tagged it. In the examples above, we named the container `dev-container`. This uses the `zsh` shell.
 
 ```bash
-docker run --rm -v ${PWD}:/home/dev/app -it dev-container:local /bin/zsh
+podman run --rm -v ${PWD}:/home/dev/app -it dev-container:local /bin/zsh
 ```
 
 Once in the container, you should have the tools necessary to develop your application.
+
+If you've enabled podman, then you need to run the container as privileged
+
+```bash
+podman run --rm -v ${PWD}:/home/dev/app -it --privileged=true dev-conainer:local /bin/zsh
+```
 
 ## Running with VSCode
 
 Once the container is built, you can use it within VSCode to do your development. First, start your container, mounting all the things that make sense. Here is what I use:
 
 ```shell
-docker run -d -v ssh:/home/dev/.ssh -v /home/sturdy5/workspaces:/home/dev/workspaces -v app:/home/dev/apps --name dev-container dev-container:local
+podman run -d -v ssh:/home/dev/.ssh -v /home/sturdy5/workspaces:/home/dev/workspaces -v app:/home/dev/apps --name dev-container dev-container:local
 ```
 
 By default, the container will start up an nginx server so that it stays running.

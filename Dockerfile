@@ -14,6 +14,7 @@ ARG USER_GID=$USER_UID
 
 # copy the scripts to the container
 COPY library-scripts/*.sh /tmp/library-scripts/
+COPY files/k8s-utils/*.sh /tmp/k8s-utils/
 
 # Arguments which can change the tools installed in the container
 ARG INSTALL_MAVEN="false"
@@ -73,19 +74,20 @@ RUN dnf update -y \
     && if [ "${INSTALL_GO}" = "true" ]; then bash /tmp/library-scripts/go.sh "${GO_VERSION}" "${USERNAME}" "true"; fi \
     # Install openshift utils
     && if [ "${INSTALL_K8S_UTILS}" = "true" ]; then bash /tmp/library-scripts/k8s-utils.sh "${HELM_VERSION}" "${USERNAME}" "true"; fi \
+    && if [ "${INSTALL_K8S_UTILS}" = "true" ]; then cp -r /tmp/k8s-utils /home/${USERNAME}; fi \
     # Install podman
     && if [ "${INSTALL_PODMAN}" = "true" ]; then bash /tmp/library-scripts/podman.sh "${USERNAME}" "true"; fi \
     # install nginx
     && dnf install -y nginx \
     # Clean up
     && rm -rf /tmp/library-scripts \
+    && rm -rf /tmp/k8s-utils \
     && dnf clean all \
     && rm -rf /var/cache/dnf \
     && rm -rf /var/lib/rpm/__db* \
     && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
 
 USER ${USERNAME}
-COPY --chown=${USERNAME}:${USERNAME} files/k8s-utils /home/${USERNAME}/k8s-utils
 
 RUN export HOME=/home/${USERNAME} \
     && mkdir -p ${HOME}/.ssh ${HOME}/workspaces ${HOME}/apps
