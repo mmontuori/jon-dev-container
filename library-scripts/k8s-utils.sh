@@ -68,6 +68,13 @@ else
     updatebashrc "source <(kubectl completion bash)"
 fi
 
+# Install oc (OpenShift CLI)
+echo "Installing oc..."
+curl -sSL -o /tmp/oc.tar.gz "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz"
+tar -xzf /tmp/oc.tar.gz oc -C /usr/local/bin
+rm -f /tmp/oc.tar.gz
+chmod +x /usr/local/bin/oc
+
 # Install helm
 echo "Installing helm..."
 curl -sSL -o /tmp/helm.tar.gz "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz"
