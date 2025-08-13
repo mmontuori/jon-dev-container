@@ -71,7 +71,8 @@ fi
 # Install oc (OpenShift CLI)
 echo "Installing oc..."
 curl -sSL -o /tmp/oc.tar.gz "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz"
-tar -xzf /tmp/oc.tar.gz oc -C /usr/local/bin
+tar -xzf /tmp/oc.tar.gz oc
+mv oc /usr/local/bin/
 rm -f /tmp/oc.tar.gz
 chmod +x /usr/local/bin/oc
 
