@@ -52,6 +52,8 @@ RUN dnf update -y \
     && dnf install -y java-$JAVA_VERSION-openjdk \
     # Install common packages, non-root user
     && bash /tmp/library-scripts/common.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
+    # Install tmux
+    && bash /tmp/library-scripts/tmux.sh "3.5a-4.fc42" "${USERNAME}" "true" \
     # Install dotfiles
     && if [ "${INSTALL_DOTFILES}" = "true" ]; then bash /tmp/library-scripts/dotfiles.sh "${USERNAME}" "${DOTFILES_VERSION}"; fi \
     # Install gradle
@@ -86,9 +88,6 @@ RUN dnf update -y \
     && rm -rf /var/cache/dnf \
     && rm -rf /var/lib/rpm/__db* \
     && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
-
-COPY files/tmux /bin/tmux
-RUN chmod 755 /bin/tmux
 
 USER ${USERNAME}
 
