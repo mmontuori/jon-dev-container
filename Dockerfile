@@ -87,6 +87,9 @@ RUN dnf update -y \
     && rm -rf /var/lib/rpm/__db* \
     && chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
 
+COPY files/tmux /bin/tmux
+RUN chmod 755 /bin/tmux
+
 USER ${USERNAME}
 
 RUN export HOME=/home/${USERNAME} \
