@@ -13,6 +13,7 @@ fi
 sleep_interval=180
 
 while true; do
+    clear
     clusters=$(cat $current_dir/.contexts | grep -v '^\s*#')
     for cluster in ${clusters[*]}; do
         echo -n "Keeping session alive for $cluster... "
