@@ -71,6 +71,12 @@ Once the container is built, you can use it within VSCode to do your development
 podman run -d -v ssh:/home/dev/.ssh -v /home/sturdy5/workspaces:/home/dev/workspaces -v app:/home/dev/apps --name dev-container dev-container:local
 ```
 
+If you've enabled podman in your container, be sure to run it as privileged
+
+```shell
+--privileged
+```
+
 By default, the container will start up an nginx server so that it stays running.
 
 Then you have to install the [Dev Containers extension in VSCode](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
