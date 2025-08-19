@@ -86,7 +86,8 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         jq \
         vim \
         dnsutils \
-        sudo"
+        sudo \
+        diffutils"
         
     echo "Packages to verify are installed: ${PACKAGE_LIST}"
     dnf -y install ${PACKAGE_LIST}
