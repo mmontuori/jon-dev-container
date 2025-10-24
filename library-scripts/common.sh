@@ -209,25 +209,41 @@ CODESPACES_BASH="$(cat \
 <<'EOF'
 
 # Codespaces bash prompt theme
+# color definitions
+GRAY=0
+RED=1
+GREEN=2
+YELLOW=3
+BLUE=4
+MAGENTA=5
+CYAN=6
+WHITE=7
+GRAY_B=8
+RED_B=9
+GREEN_B=10
+YELLOW_B=11
+BLUE_B=12
+MAGENTA_B=13
+CYAN_B=14
+WHITE_B=15
+
 __bash_prompt() {
     local userpart='`export XIT=$? \
-        && [ ! -z "${GITHUB_USER}" ] && echo -n "\[\033[0;32m\]@${GITHUB_USER} " || echo -n "\[\033[0;32m\]\u " \
-        && [ "$XIT" -ne "0" ] && echo -n "\[\033[1;31m\]➜" || echo -n "\[\033[0m\]➜"`'
+            && git config --get user.name >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1 && echo -n "\[$(tput setaf ${BLUE_B})\]@$(git config --get user.name):\[$(tput setaf ${GREEN_B})\]\h " || echo -n "\[$(tput setaf ${BLUE_B})\]\u:\[$(tput setaf ${GREEN_B})\]\h " \
+        && [ "$XIT" -ne "0" ] && echo -n "\[$(tput setaf ${RED_B})\]➜" || echo -n "\[$(tput setaf ${WHITE_B})\]➜"`'
     local gitbranch='`\
         export BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); \
         if [ "${BRANCH}" = "HEAD" ]; then \
             export BRANCH=$(git describe --contains --all HEAD 2>/dev/null); \
         fi; \
         if [ "${BRANCH}" != "" ]; then \
-            echo -n "\[\033[0;36m\](\[\033[1;31m\]${BRANCH}" \
+            echo -n "\[$(tput setaf ${CYAN_B})\](\[$(tput setaf ${RED_B})\]${BRANCH}" \
             && if git ls-files --error-unmatch -m --directory --no-empty-directory -o --exclude-standard ":/*" > /dev/null 2>&1; then \
-                    echo -n " \[\033[1;33m\]✗"; \
+                    echo -n " \[$(tput setaf ${YELLOW_B})\]✗"; \
             fi \
-            && echo -n "\[\033[0;36m\]) "; \
+            && echo -n "\[$(tput setaf ${CYAN_B})\]) "; \
         fi`'
-    local lightblue='\[\033[1;34m\]'
-    local removecolor='\[\033[0m\]'
-    PS1="${userpart} ${lightblue}\w ${gitbranch}${removecolor}\$ "
+    export PS1="${userpart} \[$(tput setaf ${BLUE_B})\]\w ${gitbranch}\[$(tput setaf ${CYAN_B})\]\\$ \[$(tput sgr0)\]"
     unset -f __bash_prompt
 }
 __bash_prompt
